@@ -10,43 +10,17 @@ const bodyParser = require('body-parser');
 const app = express();
 const port = 3000;
 
-app.use(cors());
+app.use(cors({
+    origin: '*', 
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type']
+}));
 app.use(express.json());
 
-// Twilio client setup
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
-// Helper functions to read and write products
-function readProducts() {
-    return new Promise((resolve, reject) => {
-        fs.readFile('products.json', 'utf8', (err, data) => {
-            if (err) {
-                reject(err);
-            } else {
-                try {
-                    const products = data ? JSON.parse(data) : [];
-                    resolve(products);
-                } catch (jsonError) {
-                    reject(jsonError);
-                }
-            }
-        });
-    });
-}
+// Your existing functions readProducts and writeProducts...
 
-function writeProducts(products) {
-    return new Promise((resolve, reject) => {
-        fs.writeFile('products.json', JSON.stringify(products, null, 2), (err) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve();
-            }
-        });
-    });
-}
-
-// API endpoints
 app.get('/products', async (req, res) => {
     try {
         const products = await readProducts();
@@ -199,6 +173,9 @@ app.post('/create-checkout-session', async (req, res) => {
             customer_email: email,
             success_url: 'http://localhost:8000/success.php',
             cancel_url: 'http://localhost:8000/cancel.php',
+            metadata: {
+                phone: phone 
+            }
         });
 
         res.json({ id: session.id });
@@ -208,49 +185,37 @@ app.post('/create-checkout-session', async (req, res) => {
     }
 });
 
-// Stripe webhook endpoint to listen for checkout session completion
-app.post('/webhook', bodyParser.raw({ type: 'application/json' }), (request, response) => {
-    const sig = request.headers['stripe-signature'];
+app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    const endpointSecret = process.env.STRIPE_ENDPOINT_SECRET;
 
     let event;
+
     try {
-        event = stripe.webhooks.constructEvent(request.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+        event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
     } catch (err) {
         console.log(`⚠️  Webhook signature verification failed.`, err.message);
-        return response.sendStatus(400);
+        return res.sendStatus(400);
     }
 
-    // Handle the checkout.session.completed event
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
 
-        // Log the event for debugging
-        console.log('Checkout session completed:', session);
+        try {
+            await client.messages.create({
+                body: `Your payment for ${session.amount_total / 100} ${session.currency.toUpperCase()} was successful!`,
+                from: process.env.TWILIO_PHONE_NUMBER,
+                to: session.metadata.phone
+            });
 
-        // Retrieve the session and use the customer details to send SMS
-        stripe.checkout.sessions.retrieve(session.id, { expand: ['line_items', 'customer'] })
-            .then((retrievedSession) => {
-                console.log('Retrieved session:', retrievedSession);
-
-                const phoneNumber = session.customer_details.phone;
-                if (phoneNumber) {
-                    client.messages
-                        .create({
-                            body: 'Thank you for your purchase!',
-                            from: process.env.TWILIO_PHONE_NUMBER,
-                            to: phoneNumber,
-                        })
-                        .then(message => console.log(`SMS sent with SID: ${message.sid}`))
-                        .catch(error => console.error('Error sending SMS:', error));
-                } else {
-                    console.log('No phone number provided.');
-                }
-            })
-            .catch(error => console.error('Error retrieving session:', error));
+            res.status(200).send('Notification sent');
+        } catch (error) {
+            console.error('Error sending SMS:', error);
+            res.status(500).send('Error sending SMS');
+        }
+    } else {
+        res.status(400).send('Unhandled event type');
     }
-
-    // Return a response to acknowledge receipt of the event
-    response.json({ received: true });
 });
 
 app.listen(port, () => {

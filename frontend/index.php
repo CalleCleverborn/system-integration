@@ -59,29 +59,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['logout'])) {
             $products = json_decode($response, true);
             if (is_array($products)) {
                 foreach ($products as $product) {
-                    if (isset($product['id'])) {
-                        echo "<div id='product-{$product['id']}'>
-                            <h2>{$product['name']}</h2>
-                            <p>Price: \${$product['price']}</p>
-                            <img src='{$product['image']}' alt='{$product['name']}' width='100'>";
-                        if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin') {
-                            echo "<button onclick=\"location.href='edit_product.php?id={$product['id']}'\">Edit</button>
-                            <form action='index.php' method='POST' style='display:inline;'>
-                                <input type='hidden' name='id' value='{$product['id']}'>
-                                <input type='hidden' name='delete_product' value='1'>
-                                <button type='submit'>Delete</button>
-                            </form>";
-                        }
-                        echo "<button onclick=\"location.href='checkout.php?id={$product['id']}'\">Buy</button>";
-                        echo "</div>";
-                    } else {
-                        echo "<div>
-                            <h2>{$product['name']}</h2>
-                            <p>Price: \${$product['price']}</p>
-                            <img src='{$product['image']}' alt='{$product['name']}' width='100'>
-                            <p>Error: Missing product ID</p>
-                          </div>";
+                    echo "<div id='product-{$product['id']}'>
+                        <h2>{$product['name']}</h2>
+                        <p>Price: \${$product['price']}</p>
+                        <img src='{$product['image']}' alt='{$product['name']}' width='100'>";
+                    if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin') {
+                        echo "<button onclick=\"location.href='edit_product.php?id={$product['id']}'\">Edit</button>
+                        <form action='index.php' method='POST' style='display:inline;'>
+                            <input type='hidden' name='id' value='{$product['id']}'>
+                            <input type='hidden' name='delete_product' value='1'>
+                            <button type='submit'>Delete</button>
+                        </form>";
                     }
+                    echo "<button onclick=\"location.href='checkout.php?id={$product['id']}'\">Buy</button>";
+                    echo "</div>";
                 }
             } else {
                 echo "<p>Failed to decode products data.</p>";

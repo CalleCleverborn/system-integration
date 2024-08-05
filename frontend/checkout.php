@@ -43,10 +43,12 @@ $user = array_values($user)[0];
 <body>
     <h1>Checkout</h1>
     <button id="checkout-button">Pay $<?php echo $product['price']; ?></button>
+
+
     <script>
     var stripe = Stripe(
         'pk_test_51PItI7Rxxg2rxu6vkw4GVJS5IOlzaBoifIk6h5pRdH9V5E2p7qFq1DDkxtc5TfXqFmARiwpb76fFFdhM3jxaIXgI00FxsZQSqW'
-        );
+    );
 
     document.getElementById('checkout-button').addEventListener('click', async function() {
         const productName = "<?php echo $product['name']; ?>";
@@ -55,28 +57,45 @@ $user = array_values($user)[0];
         const userEmail = "<?php echo $user['email']; ?>";
         const userPhone = "<?php echo $user['phone']; ?>";
 
-        const response = await fetch('http://localhost:3000/create-checkout-session', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                name: productName,
-                price: productPrice,
-                image: productImage,
-                email: userEmail,
-                phone: userPhone
-            })
-        });
+        console.log('Sending data:', {
+            name: productName,
+            price: productPrice,
+            image: productImage,
+            email: userEmail,
+            phone: userPhone
+        }); // Log the data being sent
 
-        const session = await response.json();
+        try {
+            const response = await fetch('http://localhost:3000/create-checkout-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: productName,
+                    price: productPrice,
+                    image: productImage,
+                    email: userEmail,
+                    phone: userPhone
+                })
+            });
 
-        const result = await stripe.redirectToCheckout({
-            sessionId: session.id
-        });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
-        if (result.error) {
-            console.error(result.error.message);
+            const session = await response.json();
+            console.log('Session:', session); // Log the session response
+
+            const result = await stripe.redirectToCheckout({
+                sessionId: session.id
+            });
+
+            if (result.error) {
+                console.error(result.error.message);
+            }
+        } catch (error) {
+            console.error('Error creating checkout session:', error);
         }
     });
     </script>
