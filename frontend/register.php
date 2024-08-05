@@ -6,28 +6,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
     $email = $_POST['email'];
     $phone = $_POST['phone'];
+    $isAdmin = isset($_POST['isAdmin']) ? true : false;
+
+    $usersFile = '../server/users.json';
+    $users = file_exists($usersFile) ? json_decode(file_get_contents($usersFile), true) : [];
+
+    // Generate a new unique ID for the user
+    $newId = count($users) > 0 ? max(array_column($users, 'id')) + 1 : 1;
 
     $user = [
+        'id' => $newId,
         'username' => $username,
         'password' => $password,
         'email' => $email,
         'phone' => $phone,
-        'role' => 'user' // Sätter standardrollen till 'user'
+        'role' => $isAdmin ? 'admin' : 'user'
     ];
-
-    $usersFile = '../server/users.json';
-    if (file_exists($usersFile)) {
-        $users = json_decode(file_get_contents($usersFile), true);
-    } else {
-        $users = [];
-    }
 
     $users[] = $user;
     file_put_contents($usersFile, json_encode($users));
 
     $_SESSION['loggedin'] = true;
     $_SESSION['username'] = $username;
-    $_SESSION['role'] = 'user';
+    $_SESSION['role'] = $user['role'];
 
     header('Location: index.php');
     exit();
@@ -57,6 +58,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         <label for="phone">Phone Number:</label>
         <input type="text" id="phone" name="phone" required><br>
+
+        <label for="isAdmin">Admin:</label>
+        <input type="checkbox" id="isAdmin" name="isAdmin"><br>
 
         <button type="submit">Register</button>
     </form>

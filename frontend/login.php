@@ -1,5 +1,6 @@
 <?php
 session_start();
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
@@ -13,15 +14,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_SESSION['loggedin'] = true;
                 $_SESSION['username'] = $username;
                 $_SESSION['role'] = $user['role'];
+                $_SESSION['user_id'] = $user['id'];
                 header('Location: index.php');
                 exit();
             }
         }
     }
 
-    $error = "Fel användarnamn eller lösenord!";
+    $error = "Incorrect username or password!";
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -42,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <button type="submit">Login</button>
     </form>
     <?php if (isset($error)) echo "<p>$error</p>"; ?>
-    <p>Har du inget konto? <a href="register.php">Registrera dig här</a></p>
+    <p>Don't have an account? <a href="register.php">Register here</a></p>
 </body>
 
 </html>
