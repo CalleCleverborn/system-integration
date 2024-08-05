@@ -1,21 +1,32 @@
 <?php
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $id = $_POST['id'];
+session_start();
 
-    $apiUrl = 'http://localhost:3000/products/' . $id;
+if (!isset($_SESSION['user_id']) || !$_SESSION['isAdmin']) {
+    header("Location: login.php");
+    exit();
+}
+
+if (isset($_GET['id'])) {
+    $product_id = $_GET['id'];
+
     $options = [
         'http' => [
-            'method' => 'DELETE'
+            'header' => "Content-type: application/json\r\n",
+            'method' => 'DELETE',
         ],
     ];
-
     $context = stream_context_create($options);
-    $result = @file_get_contents($apiUrl, false, $context);
+    $result = file_get_contents("http://localhost:3000/products/$product_id", false, $context);
 
     if ($result === FALSE) {
-        echo "<p>Failed to delete product. Please check if the server is running.</p>";
+        echo "Error deleting product.";
     } else {
-        echo "<p>Product deleted successfully!</p>";
+        header("Location: index.php");
+        exit();
     }
+} else {
+    echo "Invalid product ID.";
 }
+?>
+
 ?>

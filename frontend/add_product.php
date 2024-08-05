@@ -6,9 +6,6 @@ if (!isset($_SESSION['user_id']) || !$_SESSION['isAdmin']) {
     exit();
 }
 
-$product_id = $_GET['id'];
-$product = json_decode(file_get_contents("http://localhost:3000/products/$product_id"), true);
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = $_POST['name'];
     $price = $_POST['price'];
@@ -23,15 +20,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $options = [
         'http' => [
             'header' => "Content-type: application/json\r\n",
-            'method' => 'PUT',
+            'method' => 'POST',
             'content' => $data,
         ],
     ];
     $context = stream_context_create($options);
-    $result = file_get_contents("http://localhost:3000/products/$product_id", false, $context);
+    $result = file_get_contents('http://localhost:3000/products', false, $context);
 
     if ($result === FALSE) {
-        echo "Error updating product.";
+        echo "Error adding product.";
     } else {
         header("Location: index.php");
         exit();
@@ -42,18 +39,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html>
 
 <head>
-    <title>Edit Product</title>
+    <title>Add Product</title>
 </head>
 
 <body>
-    <h2>Edit Product</h2>
+    <h2>Add Product</h2>
     <form method="post" action="">
-        Name: <input type="text" name="name" value="<?php echo htmlspecialchars($product['name']); ?>" required><br>
-        Price: <input type="number" name="price" value="<?php echo htmlspecialchars($product['price']); ?>"
-            required><br>
-        Image URL: <input type="text" name="image" value="<?php echo htmlspecialchars($product['image']); ?>"
-            required><br>
-        <input type="submit" value="Update Product">
+        Name: <input type="text" name="name" required><br>
+        Price: <input type="number" name="price" required><br>
+        Image URL: <input type="text" name="image" required><br>
+        <input type="submit" value="Add Product">
     </form>
 </body>
 

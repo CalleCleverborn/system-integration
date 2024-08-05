@@ -1,141 +1,59 @@
 <?php
 session_start();
-if (!isset($_SESSION['loggedin'])) {
-    header('Location: login.php');
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
     exit();
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['logout'])) {
-    session_destroy();
-    header('Location: login.php');
-    exit();
-}
+$products = json_decode(file_get_contents('http://localhost:3000/products'), true);
+$user_email = $_SESSION['email'];
+$user_phone = $_SESSION['phonenumber'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product CRUD</title>
+    <title>Product Management</title>
 </head>
 
 <body>
-    <h1>Product List</h1>
-    <p>Inloggad som: <?php echo isset($_SESSION['username']) ? $_SESSION['username'] : ''; ?>
-        (<?php echo isset($_SESSION['role']) ? $_SESSION['role'] : ''; ?>)</p>
-    <form action="index.php" method="POST">
-        <input type="hidden" name="logout" value="1">
-        <button type="submit">Logga ut</button>
-    </form>
-    <div id="product-list">
-        <?php
-        if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_product']) && isset($_SESSION['role']) && $_SESSION['role'] == 'admin') {
-            $id = $_POST['id'];
-
-            $apiUrl = 'http://localhost:3000/products/' . $id;
-            $options = [
-                'http' => [
-                    'method' => 'DELETE'
-                ],
-            ];
-
-            $context = stream_context_create($options);
-            $result = @file_get_contents($apiUrl, false, $context);
-
-            if ($result === FALSE) {
-                echo "<p>Failed to delete product. Please check if the server is running.</p>";
-            } else {
-                echo "<p>Product deleted successfully!</p>";
-                echo "<meta http-equiv='refresh' content='0'>";
-            }
-        }
-
-        $apiUrl = 'http://localhost:3000/products';
-        $response = @file_get_contents($apiUrl);
-        if ($response === FALSE) {
-            echo "<p>Failed to fetch products. Please check if the server is running.</p>";
-        } else {
-            $products = json_decode($response, true);
-            if (is_array($products)) {
-                foreach ($products as $product) {
-                    echo "<div id='product-{$product['id']}'>
-                        <h2>{$product['name']}</h2>
-                        <p>Price: \${$product['price']}</p>
-                        <img src='{$product['image']}' alt='{$product['name']}' width='100'>";
-                    if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin') {
-                        echo "<button onclick=\"location.href='edit_product.php?id={$product['id']}'\">Edit</button>
-                        <form action='index.php' method='POST' style='display:inline;'>
-                            <input type='hidden' name='id' value='{$product['id']}'>
-                            <input type='hidden' name='delete_product' value='1'>
-                            <button type='submit'>Delete</button>
-                        </form>";
-                    }
-                    echo "<button onclick=\"location.href='checkout.php?id={$product['id']}'\">Buy</button>";
-                    echo "</div>";
-                }
-            } else {
-                echo "<p>Failed to decode products data.</p>";
-            }
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_product']) && isset($_SESSION['role']) && $_SESSION['role'] == 'admin') {
-            $name = $_POST['name'];
-            $price = $_POST['price'];
-            $image = $_POST['image'];
-
-            if (!is_numeric($price)) {
-                echo "<p>Price must be a number.</p>";
-            } elseif (!is_string($name) || empty($name) || is_numeric($name)) {
-                echo "<p>Name must be a valid string and cannot be numeric.</p>";
-            } else {
-                $product = [
-                    'name' => $name,
-                    'price' => (float) $price,
-                    'image' => $image
-                ];
-
-                $apiUrl = 'http://localhost:3000/products';
-                $options = [
-                    'http' => [
-                        'header' => "Content-type: application/json\r\n",
-                        'method' => 'POST',
-                        'content' => json_encode($product),
-                    ],
-                ];
-
-                $context = stream_context_create($options);
-                $result = @file_get_contents($apiUrl, false, $context);
-
-                if ($result === FALSE) {
-                    echo "<p>Failed to create product. Please check if the server is running and the data is correct.</p>";
-                } else {
-                    echo "<p>Product created successfully!</p>";
-                    echo "<meta http-equiv='refresh' content='0'>";
-                }
-            }
-        }
-        ?>
-    </div>
-    <?php if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin') { ?>
-    <h2>Add New Product</h2>
-    <form action="index.php" method="POST">
-        <input type="hidden" name="create_product" value="1">
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required>
-        <br>
-        <label for="price">Price:</label>
-        <input type="number" id="price" name="price" required step="0.01">
-        <br>
-        <label for="image">Image URL:</label>
-        <input type="text" id="image" name="image">
-        <br>
-        <button type="submit">Add Product</button>
-    </form>
-    <h2>Export Products</h2>
-    <button onclick="location.href='http://localhost:3000/export/csv'">Export to CSV</button>
-    <button onclick="location.href='http://localhost:3000/export/xml'">Export to XML</button>
+    <h2>Welcome, <?php echo $_SESSION['username']; ?></h2>
+    <a href="logout.php">Logout</a>
+    <h3>Products</h3>
+    <?php if ($_SESSION['isAdmin']) { ?>
+    <a href="add_product.php">Add New Product</a> |
+    <a href="export_csv.php">Export to CSV</a> |
+    <a href="export_xml.php">Export to XML</a>
     <?php } ?>
+    <table border="1">
+        <tr>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Image</th>
+            <th>Buy</th>
+            <?php if ($_SESSION['isAdmin']) { ?>
+            <th>Actions</th>
+            <?php } ?>
+        </tr>
+        <?php foreach ($products as $product) { ?>
+        <tr>
+            <td><?php echo htmlspecialchars($product['name']); ?></td>
+            <td><?php echo htmlspecialchars($product['price']); ?></td>
+            <td><img src="<?php echo htmlspecialchars($product['image']); ?>" width="50"></td>
+            <td>
+                <a
+                    href="checkout.php?id=<?php echo $product['_id']; ?>&email=<?php echo $user_email; ?>&phone=<?php echo $user_phone; ?>">Buy</a>
+            </td>
+            <?php if ($_SESSION['isAdmin']) { ?>
+            <td>
+                <a href="edit_product.php?id=<?php echo $product['_id']; ?>">Edit</a>
+                <a href="delete_product.php?id=<?php echo $product['_id']; ?>">Delete</a>
+            </td>
+            <?php } ?>
+        </tr>
+        <?php } ?>
+    </table>
 </body>
 
 </html>
