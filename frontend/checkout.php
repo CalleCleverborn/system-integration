@@ -14,7 +14,7 @@ if ($product_id === null || $email === null || $phone === null) {
     exit();
 }
 
-$apiUrl = 'http://localhost:3000/products/' . $product_id;
+$apiUrl = 'https://sysint-callecleverborn-carl-cleverborns-projects.vercel.app/products/' . $product_id;
 $response = @file_get_contents($apiUrl);
 if ($response === FALSE) {
     echo "<p>Failed to fetch product. Please check if the server is running.</p>";
@@ -68,19 +68,20 @@ $product_image = $product['image'] ? $product['image'] : 'default_image_url';
         });
 
         try {
-            const response = await fetch('http://localhost:3000/create-checkout-session', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    name: productName,
-                    price: productPrice,
-                    image: productImage,
-                    email: userEmail,
-                    phone: userPhone
-                })
-            });
+            const response = await fetch(
+                'https://sysint-callecleverborn-carl-cleverborns-projects.vercel.app/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: productName,
+                        price: productPrice,
+                        image: productImage,
+                        email: userEmail,
+                        phone: userPhone
+                    })
+                });
 
             console.log('Response received:', response);
 

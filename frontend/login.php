@@ -5,7 +5,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    $url = 'http://localhost:3000/users';
+    $url = 'https://sysint-callecleverborn-carl-cleverborns-projects.vercel.app/users';
     $response = file_get_contents($url);
     $users = json_decode($response, true);
 

@@ -24,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         ],
     ];
     $context = stream_context_create($options);
-    $result = file_get_contents('http://localhost:3000/users', false, $context);
+    $result = file_get_contents('https://sysint-callecleverborn-carl-cleverborns-projects.vercel.app/users', false, $context);
 
     if ($result === FALSE) {
         $error = "Error registering user.";

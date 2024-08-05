@@ -25,7 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         ],
     ];
     $context = stream_context_create($options);
-    $result = file_get_contents('http://localhost:3000/products', false, $context);
+    $result = file_get_contents('https://sysint-callecleverborn-carl-cleverborns-projects.vercel.app/products', false, $context);
 
     if ($result === FALSE) {
         echo "Error adding product.";

@@ -6,10 +6,14 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-$products = json_decode(file_get_contents('http://localhost:3000/products'), true);
+// Use the Vercel-deployed server URL
+$apiUrl = 'https://sysint-callecleverborn-carl-cleverborns-projects.vercel.app/';
+
+$products = json_decode(file_get_contents("$apiUrl/products"), true);
 $user_email = $_SESSION['email'];
 $user_phone = $_SESSION['phonenumber'];
 ?>
+
 <!DOCTYPE html>
 <html>
 
