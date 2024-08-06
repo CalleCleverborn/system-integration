@@ -16,16 +16,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         'isAdmin' => $isAdmin
     );
 
-    // Use the new Vercel-deployed server URL
-    $apiUrl = 'https://system-integration-2tdfecbgh-carl-cleverborns-projects.vercel.app/register';
+    $apiUrl = 'https://sysserver-olsm5c0q3-carl-cleverborns-projects.vercel.app/register';
     $options = array(
         'http' => array(
-            'header'  => "Content-type: application/json\r\n",
-            'method'  => 'POST',
+            'header' => "Content-type: application/json\r\n",
+            'method' => 'POST',
             'content' => json_encode($data),
         ),
     );
-    $context  = stream_context_create($options);
+    $context = stream_context_create($options);
     $result = file_get_contents($apiUrl, false, $context);
 
     if ($result === FALSE) {
@@ -53,7 +52,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <label><input type="checkbox" name="isAdmin"> Register as Admin</label><br>
         <input type="submit" value="Register">
     </form>
-    <?php if (isset($error)) echo $error; ?>
+    <?php if (isset($error))
+        echo $error; ?>
     <a href="login.php">Login</a>
 </body>
 

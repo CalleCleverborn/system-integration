@@ -6,8 +6,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Use the new Vercel-deployed server URL
-$apiUrl = 'https://system-integration-2tdfecbgh-carl-cleverborns-projects.vercel.app';
+$apiUrl = 'https://sysserver-olsm5c0q3-carl-cleverborns-projects.vercel.app';
 
 $products = json_decode(file_get_contents("$apiUrl/products"), true);
 if ($products === null) {

@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id']) || !$_SESSION['isAdmin']) {
 }
 
 $product_id = $_GET['id'];
-$product = json_decode(file_get_contents("https://sysint-c4bc6h8gv-carl-cleverborns-projects.vercel.app/products/$product_id"), true);
+$product = json_decode(file_get_contents("https://sysserver-olsm5c0q3-carl-cleverborns-projects.vercel.app/products/$product_id"), true);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = $_POST['name'];
@@ -28,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         ],
     ];
     $context = stream_context_create($options);
-    $result = file_get_contents("https://sysint-c4bc6h8gv-carl-cleverborns-projects.vercel.app/$product_id", false, $context);
+    $result = file_get_contents("https://sysserver-olsm5c0q3-carl-cleverborns-projects.vercel.app/products/$product_id", false, $context);
 
     if ($result === FALSE) {
         echo "Error updating product.";
