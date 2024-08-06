@@ -16,7 +16,7 @@ if (isset($_GET['id'])) {
         ],
     ];
     $context = stream_context_create($options);
-    $result = file_get_contents("https://sysint-callecleverborn-carl-cleverborns-projects.vercel.app/products/$product_id", false, $context);
+    $result = file_get_contents("https://sysint-c4bc6h8gv-carl-cleverborns-projects.vercel.app/products/$product_id", false, $context);
 
     if ($result === FALSE) {
         echo "Error deleting product.";

@@ -6,10 +6,15 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Use the Vercel-deployed server URL
-$apiUrl = 'https://sysint-callecleverborn-carl-cleverborns-projects.vercel.app/';
+// Use the new Vercel-deployed server URL
+$apiUrl = 'https://system-integration-2tdfecbgh-carl-cleverborns-projects.vercel.app';
 
 $products = json_decode(file_get_contents("$apiUrl/products"), true);
+if ($products === null) {
+    echo "Error fetching products.";
+    exit();
+}
+
 $user_email = $_SESSION['email'];
 $user_phone = $_SESSION['phonenumber'];
 ?>

@@ -8,23 +8,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
     $isAdmin = isset($_POST['isAdmin']) ? true : false;
 
-    $data = json_encode([
+    $data = array(
         'username' => $username,
         'email' => $email,
         'phonenumber' => $phonenumber,
-        'password' => $password,
+        'password' => password_hash($password, PASSWORD_DEFAULT),
         'isAdmin' => $isAdmin
-    ]);
+    );
 
-    $options = [
-        'http' => [
-            'header' => "Content-type: application/json\r\n",
-            'method' => 'POST',
-            'content' => $data,
-        ],
-    ];
-    $context = stream_context_create($options);
-    $result = file_get_contents('https://sysint-callecleverborn-carl-cleverborns-projects.vercel.app/users', false, $context);
+    // Use the new Vercel-deployed server URL
+    $apiUrl = 'https://system-integration-2tdfecbgh-carl-cleverborns-projects.vercel.app/register';
+    $options = array(
+        'http' => array(
+            'header'  => "Content-type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => json_encode($data),
+        ),
+    );
+    $context  = stream_context_create($options);
+    $result = file_get_contents($apiUrl, false, $context);
 
     if ($result === FALSE) {
         $error = "Error registering user.";
@@ -48,11 +50,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         Email: <input type="email" name="email" required><br>
         Phone Number: <input type="text" name="phonenumber" required><br>
         Password: <input type="password" name="password" required><br>
-        Admin: <input type="checkbox" name="isAdmin"><br>
+        <label><input type="checkbox" name="isAdmin"> Register as Admin</label><br>
         <input type="submit" value="Register">
     </form>
-    <?php if (isset($error))
-        echo $error; ?>
+    <?php if (isset($error)) echo $error; ?>
     <a href="login.php">Login</a>
 </body>
 

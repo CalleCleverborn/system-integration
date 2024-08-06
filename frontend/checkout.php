@@ -14,8 +14,10 @@ if ($product_id === null || $email === null || $phone === null) {
     exit();
 }
 
-$apiUrl = 'https://sysint-callecleverborn-carl-cleverborns-projects.vercel.app/products/' . $product_id;
-$response = @file_get_contents($apiUrl);
+// Use the new Vercel-deployed server URL
+$apiUrl = 'https://system-integration-2tdfecbgh-carl-cleverborns-projects.vercel.app';
+
+$response = @file_get_contents("$apiUrl/products/$product_id");
 if ($response === FALSE) {
     echo "<p>Failed to fetch product. Please check if the server is running.</p>";
     exit();
@@ -25,9 +27,6 @@ if ($product === null) {
     echo "<p>Product not found. Please check if the product ID is correct.</p>";
     exit();
 }
-
-
-$product_image = $product['image'] ? $product['image'] : 'default_image_url';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -42,34 +41,31 @@ $product_image = $product['image'] ? $product['image'] : 'default_image_url';
     <h1>Checkout</h1>
     <p>Product: <?php echo htmlspecialchars($product['name']); ?></p>
     <p>Price: $<?php echo htmlspecialchars($product['price']); ?></p>
-    <img src="<?php echo htmlspecialchars($product_image); ?>" width="100">
+    <img src="<?php echo htmlspecialchars($product['image']); ?>" width="100">
     <button id="checkout-button">Pay $<?php echo $product['price']; ?></button>
 
     <script>
-    var stripe = Stripe(
-        'pk_test_51PItI7Rxxg2rxu6vkw4GVJS5IOlzaBoifIk6h5pRdH9V5E2p7qFq1DDkxtc5TfXqFmARiwpb76fFFdhM3jxaIXgI00FxsZQSqW'
-    );
+        var stripe = Stripe('your_publishable_key_here'); // Replace with your Stripe public key
 
-    document.getElementById('checkout-button').addEventListener('click', async function() {
-        console.log('Checkout button clicked');
+        document.getElementById('checkout-button').addEventListener('click', async function () {
+            console.log('Checkout button clicked');
 
-        const productName = "<?php echo $product['name']; ?>";
-        const productPrice = "<?php echo $product['price']; ?>";
-        const productImage = "<?php echo $product_image; ?>";
-        const userEmail = "<?php echo $email; ?>";
-        const userPhone = "<?php echo $phone; ?>";
+            const productName = "<?php echo $product['name']; ?>";
+            const productPrice = "<?php echo $product['price']; ?>";
+            const productImage = "<?php echo $product['image']; ?>";
+            const userEmail = "<?php echo $email; ?>";
+            const userPhone = "<?php echo $phone; ?>";
 
-        console.log('Sending data:', {
-            name: productName,
-            price: productPrice,
-            image: productImage,
-            email: userEmail,
-            phone: userPhone
-        });
+            console.log('Sending data:', {
+                name: productName,
+                price: productPrice,
+                image: productImage,
+                email: userEmail,
+                phone: userPhone
+            }); // Log the data being sent
 
-        try {
-            const response = await fetch(
-                'https://sysint-callecleverborn-carl-cleverborns-projects.vercel.app/create-checkout-session', {
+            try {
+                const response = await fetch('<?php echo $apiUrl; ?>/create-checkout-session', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -83,26 +79,26 @@ $product_image = $product['image'] ? $product['image'] : 'default_image_url';
                     })
                 });
 
-            console.log('Response received:', response);
+                console.log('Response received:', response);
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const session = await response.json();
+                console.log('Session:', session); // Log the session response
+
+                const result = await stripe.redirectToCheckout({
+                    sessionId: session.id
+                });
+
+                if (result.error) {
+                    console.error(result.error.message);
+                }
+            } catch (error) {
+                console.error('Error creating checkout session:', error);
             }
-
-            const session = await response.json();
-            console.log('Session:', session);
-
-            const result = await stripe.redirectToCheckout({
-                sessionId: session.id
-            });
-
-            if (result.error) {
-                console.error(result.error.message);
-            }
-        } catch (error) {
-            console.error('Error creating checkout session:', error);
-        }
-    });
+        });
     </script>
 </body>
 

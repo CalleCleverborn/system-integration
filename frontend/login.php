@@ -5,8 +5,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    $url = 'https://sysint-callecleverborn-carl-cleverborns-projects.vercel.app/users';
-    $response = file_get_contents($url);
+    // Use the new Vercel-deployed server URL
+    $apiUrl = 'https://system-integration-2tdfecbgh-carl-cleverborns-projects.vercel.app/users';
+    $response = file_get_contents($apiUrl);
     $users = json_decode($response, true);
 
     foreach ($users as $user) {
@@ -14,8 +15,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['user_id'] = $user['_id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['isAdmin'] = $user['isAdmin'];
-            $_SESSION['email'] = $user['email'];
-            $_SESSION['phonenumber'] = $user['phonenumber'];
+            $_SESSION['email'] = $user['email'];  // Ensure email is set
+            $_SESSION['phonenumber'] = $user['phonenumber'];  // Ensure phone number is set
             header("Location: index.php");
             exit();
         }
@@ -37,8 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         Password: <input type="password" name="password" required><br>
         <input type="submit" value="Login">
     </form>
-    <?php if (isset($error))
-        echo $error; ?>
+    <?php if (isset($error)) echo $error; ?>
     <a href="register.php">Register</a>
 </body>
 
